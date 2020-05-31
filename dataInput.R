@@ -1,6 +1,12 @@
 library(tidyverse)
+library(ggforce)
+
+setwd("C:/GitHub/unfoldedCOVID")
 
 temp <- read_csv("data/unfolded_covid _w social_distance _w demographics _w weekly_patterns.csv")
+# ufw <- read_csv("data/unfolded_covid _w social_distance _w weekly_patterns _w demographics.csv")
+cfw <- read_csv("data/unfolded_covid _w social_distance _w demographics _w spend.csv")
+
 
 saveRDS(temp, "data/unfoldedGA.RData")
 
@@ -18,9 +24,14 @@ uf <- temp %>%
   mutate(startdate = first(datestr)) %>% 
   # Use complete to bring back a row for any level of variable that
   # didn't start with any rows with values==0
-  mutate(dayssince = as.double(difftime(datestr,startdate,unit="days")), newcases = cases - lag(cases))  
+  mutate(dayssince = as.double(difftime(datestr,startdate,unit="days")), newcases = cases - lag(cases))
 
-g <- ggplot(uf, aes(x = dayssince, y = log10(cases), color=census_block_group)) + geom_path() + geom_smooth()
+sf <- uf %>% group_by(county_name, datestr) %>% summarize(covid = sum(cases), mort = sum(deaths) )
+
+
+g <- ggplot(uf, aes(x = dayssince, y = log10(cases), color=census_block_group)) + geom_path() + facet_wrap_paginate(~ county_name, ncol=3, nrow=3, page=1)
+n_pages(g)
+
 g
 
 
