@@ -1,11 +1,10 @@
 library(tidyverse)
 library(ggforce)
 
-setwd("C:/GitHub/unfoldedCOVID")
+setwd("~/github/unfoldedCOVID")
 
 temp <- read_csv("data/unfolded_covid _w social_distance _w demographics _w weekly_patterns.csv")
-# ufw <- read_csv("data/unfolded_covid _w social_distance _w weekly_patterns _w demographics.csv")
-cfw <- read_csv("data/unfolded_covid _w social_distance _w demographics _w spend.csv")
+
 
 
 saveRDS(temp, "data/unfoldedGA.RData")
@@ -28,12 +27,14 @@ uf <- temp %>%
 
 sf <- uf %>% group_by(county_name, datestr) %>% summarize(covid = sum(cases), mort = sum(deaths) )
 
+cbgcount <- uf %>% filter(datestr == last(datestr)) %>% group_by(county_name) %>% summarize(n())
 
-g <- ggplot(uf, aes(x = dayssince, y = log10(cases), color=census_block_group)) + geom_path() + facet_wrap_paginate(~ county_name, ncol=3, nrow=3, page=1)
-n_pages(g)
-
-g
-
+pdf(file="multiplotuf.pdf")
+for (i in 1:18) {
+p <-  ggplot(uf, aes(x = dayssince, y = log10(cases), color=census_block_group)) + geom_path() + facet_wrap_paginate(~county_name, ncol=3, nrow=3, page=i)
+plot(p)
+}
+dev.off()
 
 l <- lm(log10(cases) ~ dayssince, uf)
 l
